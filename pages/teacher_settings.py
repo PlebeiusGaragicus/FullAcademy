@@ -1,8 +1,9 @@
 import streamlit as st
+from src.login import login
 
-from src.common import login_needed
 
-if login_needed():
-    st.button("Settings")
-# else:
-    # st.write("You need to log in first.")
+
+if login("root"):
+    st.header("Teacher Settings", divider="rainbow")
+    if st.button("Settings"):
+        st.write("does nothing")

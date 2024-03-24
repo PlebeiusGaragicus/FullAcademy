@@ -1,26 +1,10 @@
-import os
 import yaml
 
 import streamlit as st
 import streamlit_authenticator as stauth
 
-def setup_interface():
-    # st.set_page_config(
-    #     page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",
-    #     page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
-    #     layout="centered",
-    #     initial_sidebar_state="auto",
-    # )
-    pass
 
-
-# def login_needed():
-#     return False
-
-
-
-
-def login_needed():
+def login(username: str = None):
     """
     if st.session_state["authentication_status"]:
         authenticator.logout()
@@ -68,7 +52,14 @@ def login_needed():
 
 
     if st.session_state["authentication_status"] is True:
-        st.session_state.authenticator.logout(button_name=":red[👋🏻 Logout]")
-        st.header("Teacher Settings", divider="rainbow")
+        with st.sidebar:
+            st.session_state.authenticator.logout(button_name=":red[👋🏻 Logout]")
 
-        return True
+        if username is None:
+            return True
+        else:
+            if st.session_state.username == username:
+                return True
+            else:
+                st.error("You do not have permission to access this page.")
+                return False
