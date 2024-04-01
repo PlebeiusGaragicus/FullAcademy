@@ -9,6 +9,7 @@ import streamlit as st
 def choose_word():
     st.session_state.chosen_word_index = random.randint(0, len(st.session_state['words']['list']) - 1)
     st.session_state.failed_attempts = 0
+    st.session_state.given_up = False
 
 def chosen_word():
     return st.session_state['words']['list'][st.session_state.chosen_word_index]['word']
@@ -57,7 +58,11 @@ with st.form(key='spell_test_form', clear_on_submit=True):
     guess = st.text_input('Type the word you hear:', key='word_input')
     if st.form_submit_button(':green[Submit]'):
         if guess.lower() == chosen_word():
-            change_score(True)
+            if st.session_state.given_up:
+                st.warning("Good practice!")
+            else:
+                change_score(True)
+                st.toast("Correct!")
             choose_word()
             st.balloons()
             # st.success('Correct!')
@@ -82,33 +87,45 @@ with st.form(key='spell_test_form', clear_on_submit=True):
 # st.write(f"Score: {st.session_state['words']['list'][st.session_state.chosen_word_index]['score']}")
 # st.write(f"attempts: {st.session_state['words']['list'][st.session_state.chosen_word_index]['attempts']}")
 
-if st.session_state.failed_attempts <= 2:
+if st.session_state.failed_attempts < 2:
     ### BUTTONS
-    cols = st.columns([4, 1, 1])
+    cols = st.columns([3, 1, 1, 1])
     with cols[0]:
         if st.session_state['words']['list'][st.session_state.chosen_word_index]['attempts'] > 0:
-            st.write(f"Percentage: {st.session_state['words']['list'][st.session_state.chosen_word_index]['score'] / st.session_state['words']['list'][st.session_state.chosen_word_index]['attempts'] * 100:.2f}%")
-        else:
-            st.write("Never tried this word")
+            st.write(f"{st.session_state['words']['list'][st.session_state.chosen_word_index]['score'] / st.session_state['words']['list'][st.session_state.chosen_word_index]['attempts'] * 100:.2f}%")
+        # else:
+            # st.write("Never tried this word")
 
     with cols[1]:
-        if st.button('Say it :orange[again]'):
-            st.rerun()
+        if st.button(":blue[Show]"):
+            st.session_state.given_up = True
+            # st.markdown(f":blue[{chosen_word()}]")
 
     with cols[2]:
+        if not st.session_state.given_up:
+            if st.button('Say it :orange[again]'):
+                st.rerun()
+
+    with cols[3]:
         if st.button(":red[Skip]"):
             choose_word()
             st.rerun()
 
-    st.write(chosen_word())
+
+    if st.session_state.given_up:
+        st.markdown(f"# :blue[{chosen_word()}]")
+
+
+    # st.write(chosen_word())
 
 
     ### SPEAK THE WORD
-    example = st.session_state['words']['list'][st.session_state.chosen_word_index]['example']
-    if example != "":
-        subprocess.run(['say', f"{chosen_word()}.\n\n", f"As in, {example}", '-v', 'Samantha'])
-    else:
-        subprocess.run(['say', chosen_word(), '-v', 'Samantha'])
+    if not st.session_state.given_up:
+        example = st.session_state['words']['list'][st.session_state.chosen_word_index]['example']
+        if example != "":
+            subprocess.run(['say', f"{chosen_word()}.\n\n", f"As in, {example}", '-v', 'Alex'])
+        else:
+            subprocess.run(['say', chosen_word(), '-v', 'Alex'])
 
 
 
