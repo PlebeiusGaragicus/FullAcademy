@@ -28,7 +28,8 @@ def add_word(word, example):
         {
             "word": word,
             "example": example,
-            "score": 0
+            "score": 0,
+            "attempts": 0,
         }
     )
 
@@ -89,3 +90,15 @@ if st.button("Bulk add"):
 
 # st.divider()
 # st.text_area("Words", json.dumps(st.session_state['words'], indent=4), height=500)
+
+
+if st.button("Reset stats", key="reset_stats"):
+    if st.button(":red[are you sure!?!?!]"):
+        for w in st.session_state['words']['list']:
+            w['score'] = 0
+            w['attempts'] = 0
+
+        with open('words.json', 'w') as file:
+            json.dump(st.session_state['words'], file)
+        st.toast("Stats reset!!")
+        st.rerun()
