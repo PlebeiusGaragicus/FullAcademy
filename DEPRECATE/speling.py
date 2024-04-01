@@ -9,7 +9,6 @@ from gtts import gTTS
 
 import streamlit as st
 
-from src.login import login
 
 
 # def autoplay_audio(file_path: str):
@@ -109,6 +108,6 @@ def page():
 #     tts.save(f'audio/{word}.mp3')
 
 
-if login():
-    init()
-    page()
+# if login():
+init()
+page()
