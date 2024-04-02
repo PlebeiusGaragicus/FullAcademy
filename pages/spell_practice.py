@@ -36,7 +36,7 @@ def save_state():
 ###############################################
 st.set_page_config(
     page_title="Spelling Master",
-    initial_sidebar_state="collapsed",
+    # initial_sidebar_state="collapsed",
     # layout="wide"
 )
 st.header('Spelling Master', divider="rainbow")
