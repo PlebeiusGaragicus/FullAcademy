@@ -35,15 +35,17 @@ def save_state():
 
 ###############################################
 st.set_page_config(
-    page_title="Spelling Master",
+    page_title="Spelling practice",
     # initial_sidebar_state="collapsed",
     # layout="wide"
 )
-st.header('Spelling Master', divider="rainbow")
+st.header('Spelling practice', divider="rainbow")
 
 
 ### INIT
-if not 'words' in st.session_state:
+if not 'practice' in st.session_state:
+    st.session_state.practice = True
+
     with open('words.json') as f:
         st.session_state.words = json.load(f)
     
@@ -116,18 +118,14 @@ if st.session_state.failed_attempts < 2:
         st.markdown(f"# :blue[{chosen_word()}]")
 
 
-    # st.write(chosen_word())
-
-
     ### SPEAK THE WORD
-    # if not st.session_state.given_up:
     if st.session_state.speak_word:
         example = st.session_state['words']['list'][st.session_state.chosen_word_index]['example']
         if example != "":
-            subprocess.run(['say', f"{chosen_word()}.\n\n", f"As in, {example}", '-v', 'Alex'])
+            subprocess.run(['say', f"Spell: `{chosen_word()}`.\n\n", f"As in: '{example}'", '-v', 'Alex'])
         else:
-            subprocess.run(['say', chosen_word(), '-v', 'Alex'])
-        
+            subprocess.run(['say', f"Spell: `{chosen_word()}`", '-v', 'Alex'])
+
         st.session_state.speak_word = False
 
     if not st.session_state.given_up:
@@ -140,5 +138,5 @@ if st.session_state.failed_attempts < 2:
         st.rerun()
 
 
-with st.sidebar.popover("Debugging"):
-    st.write(st.session_state)
+# with st.sidebar.popover("Debugging"):
+#     st.write(st.session_state)
