@@ -10,6 +10,7 @@ def choose_word():
     st.session_state.chosen_word_index = random.randint(0, len(st.session_state['words']['list']) - 1)
     st.session_state.failed_attempts = 0
     st.session_state.given_up = False
+    st.session_state.speak_word = True
 
 def chosen_word():
     return st.session_state['words']['list'][st.session_state.chosen_word_index]['word']
@@ -61,8 +62,9 @@ with st.form(key='spell_test_form', clear_on_submit=True):
             if st.session_state.given_up:
                 st.warning("Good practice!")
             else:
-                change_score(True)
-                st.toast("Correct!")
+                if st.session_state.failed_attempts < 2:
+                    change_score(True)
+                    st.toast("Correct!")
             choose_word()
             st.balloons()
             # st.success('Correct!')
@@ -71,11 +73,12 @@ with st.form(key='spell_test_form', clear_on_submit=True):
 
             # STUDENT GOT IT WRONG
         else:
+            st.session_state.speak_word = True
             change_score(False)
             if st.session_state.failed_attempts == 0:
                 st.error('Incorrect! Try again.')
-            elif st.session_state.failed_attempts == 1:
-                st.error('Try one more time!')
+            # elif st.session_state.failed_attempts == 1:
+                # st.error('Try one more time!')
             else:
                 st.markdown(f"# Sorry, the word was `{chosen_word()}`")
                 # choose_word()
@@ -102,14 +105,11 @@ if st.session_state.failed_attempts < 2:
             # st.markdown(f":blue[{chosen_word()}]")
 
     with cols[2]:
-        if not st.session_state.given_up:
-            if st.button('Say it :orange[again]'):
-                st.rerun()
+        placeholder_sayitagain = st.empty()
 
     with cols[3]:
-        if st.button(":red[Skip]"):
-            choose_word()
-            st.rerun()
+        placeholder_skip = st.empty()
+        
 
 
     if st.session_state.given_up:
@@ -120,13 +120,24 @@ if st.session_state.failed_attempts < 2:
 
 
     ### SPEAK THE WORD
-    if not st.session_state.given_up:
+    # if not st.session_state.given_up:
+    if st.session_state.speak_word:
         example = st.session_state['words']['list'][st.session_state.chosen_word_index]['example']
         if example != "":
             subprocess.run(['say', f"{chosen_word()}.\n\n", f"As in, {example}", '-v', 'Alex'])
         else:
             subprocess.run(['say', chosen_word(), '-v', 'Alex'])
+        
+        st.session_state.speak_word = False
 
+    if not st.session_state.given_up:
+        if placeholder_sayitagain.button('Say it :orange[again]'):
+            st.session_state.speak_word = True
+            st.rerun()
+    
+    if placeholder_skip.button(":red[Skip]"):
+        choose_word()
+        st.rerun()
 
 
 with st.sidebar.popover("Debugging"):
