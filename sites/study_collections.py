@@ -8,13 +8,13 @@ def page():
     if not login():
         return
 
-    st.header("Study Collections")
+    st.header("📚 :rainbow[Study Collections]", divider="rainbow")
 
     db = get_db()
 
     user_id = db["users"].find_one({"name": st.session_state.username})
     user_id = str(user_id["_id"])
-    st.write(f"User ID: '{user_id}'")
+    st.sidebar.write(f"User ID: '{user_id}'")
 
 
 
@@ -26,9 +26,8 @@ def page():
     # st.write(f"MY Problemsets: {problemsets}")
 
 
-    # if st.button("Create New Collection"):
     # show a form to create a new collection
-    with st.expander("Create New Collection"):
+    with st.expander("🌱 :green[Create a new collection]"):
         with st.form(key="new_collection", clear_on_submit=True):
             title = st.text_input("Title")
             description = st.text_area("Description")
@@ -44,7 +43,7 @@ def page():
                     st.rerun()
 
 
-    st.header("Your Study Collections", divider=True)
+    st.header(":green[Your Study Collections]", divider=True)
 
     if problemsets == []:
         st.warning("You have no study collections yet!")
@@ -55,6 +54,7 @@ def page():
     for problemset in problemsets:
         with st.container(border=True):
             st.markdown(f"## {problemset['title']}")
+            # st.header(problemset['title'], divider=True)
             st.write(problemset['description'])
             st.write(f"Type: `{problemset['type']}`")
 

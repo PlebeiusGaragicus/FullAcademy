@@ -8,13 +8,14 @@ def page():
     if not login():
         return
 
-    st.header("Study Collections")
+    st.header("📝 :rainbow[Edit a Collection]", divider="rainbow")
+
 
     db = get_db()
 
     user_id = db["users"].find_one({"name": st.session_state.username})
     user_id = str(user_id["_id"])
-    st.write(f"User ID: '{user_id}'")
+    st.sidebar.write(f"User ID: '{user_id}'")
 
 
     # find all ProblemSets inside "problemset" collection that belong to the current user
@@ -33,11 +34,10 @@ def page():
         new_problem_type = st.selectbox("Problem Type", [problem_type.value for problem_type in ProblemType])
     else:
         new_problem_type = selected_problemset['type']
-        st.markdown("Problem Type: " + new_problem_type)
-
+        st.markdown(f"Collection Problem Type: `{new_problem_type}`")
 
     with st.form(key="add_problem", clear_on_submit=True):
-        # st.write("Add a new problem to the selected problemset")
+
         if new_problem_type == ProblemType.SHORT_ANSWER.value:
             question = st.text_input("Question")
             answer = st.text_input("Answer")
@@ -54,9 +54,10 @@ def page():
                         st.error("Problem already exists in the selected problemset")
 
         elif new_problem_type == ProblemType.SPELLING.value:
+            st.header("New spelling word", divider=True)
             word = st.text_input("Word")
             example_usage = st.text_input("Example Usage")
-            if st.form_submit_button("Add Problem"):
+            if st.form_submit_button("Add word"):
                 if word == "" or example_usage == "":
                     st.error("All fields must be filled")
                 else:
@@ -96,6 +97,11 @@ def page():
                     else:
                         st.error("Problem already exists in the selected problemset")
 
+    if new_problem_type == ProblemType.SPELLING.value:
+        st.header("List of words in collection", divider=True)
+    else:
+        st.header("List of problems in collection", divider=True)
+
     # list all problems in the selected problemset
     # with st.expander("Problems"):
     for problem in selected_problemset['problems']:
@@ -110,9 +116,11 @@ def page():
                     st.write(f"Word: {problem['word']}")
                     st.write(f"Example Usage: {problem['example_usage']}")
                 elif problem['type'] == "math":
+
                     st.write(f"Equation: {problem['equation']}")
                     st.write(f"Answer: {problem['answer']}")
                 elif problem['type'] == "definition":
+                    # st.write("`Definition`")
                     st.write(f"Word: {problem['word']}")
                     st.write(f"Definition: {problem['definition']}")
 

@@ -18,13 +18,13 @@ class Pages(Enum):
     HOME = ("Home", landing_page)
 
 
-    SPELLING_PRACTICE = (":orange[Spelling practice]", spell_practice_page)
-    SPELLING_PROGRESS = (":purple[Spelling progress]", spelling_progress_page)
+    SPELLING_PRACTICE = ("🧠 :orange[Spelling practice]", spell_practice_page)
+    SPELLING_PROGRESS = ("📈 :violet[Spelling progress]", spelling_progress_page)
     # SPELLING_TEST = (":green[Spelling test]", spelling_test_page)
     # SPELLING_SETTINGS = ("👨🏻‍🏫 :blue[Spelling settings]", spelling_settings_page)
 
-    STUDY_COLLECTIONS = ("📚 :purple[Collections]", study_collections_page)
-    COLLECTION_EDIT = ("📝 :blue[Collection edit]", collection_edit_page)
+    STUDY_COLLECTIONS = ("📚 :green[Study Collections]", study_collections_page)
+    COLLECTION_EDIT = ("📝 :blue[Edit a Collection]", collection_edit_page)
 
     ROOT_PANEL = ("🔒 :red[Root panel]", root_page)
 

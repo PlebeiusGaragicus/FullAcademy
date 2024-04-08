@@ -40,7 +40,7 @@ def page():
     if not login():
         return
 
-    st.header('📝 :rainbow[Spelling practice]', divider="rainbow")
+    st.header('🧠 :rainbow[Spelling practice]', divider="rainbow")
 
 
     ### INIT
