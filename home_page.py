@@ -2,9 +2,12 @@ import streamlit as st
 
 from enum import Enum
 
+
 from sites.landing_page import page as landing_page
 from sites.spelling_practice import page as spell_practice_page
 from sites.spelling_progress import page as spelling_progress_page
+
+from sites.practice import page as practice_page
 
 from sites.study_collections import page as study_collections_page
 from sites.collection_edit import page as collection_edit_page
@@ -12,22 +15,24 @@ from sites.collection_edit import page as collection_edit_page
 # from sites.spelling_settings import page as spelling_settings_page
 from sites.root import page as root_page
 
+import sites
 
 
 class Pages(Enum):
-    HOME = ("Home", landing_page)
+    HOME = (sites.HOME, landing_page, True)
 
-
-    SPELLING_PRACTICE = ("🧠 :orange[Spelling practice]", spell_practice_page)
-    SPELLING_PROGRESS = ("📈 :violet[Spelling progress]", spelling_progress_page)
+    # SPELLING_PRACTICE = ("🧠 :orange[Spelling practice]", spell_practice_page)
     # SPELLING_TEST = (":green[Spelling test]", spelling_test_page)
     # SPELLING_SETTINGS = ("👨🏻‍🏫 :blue[Spelling settings]", spelling_settings_page)
 
-    STUDY_COLLECTIONS = ("📚 :green[Study Collections]", study_collections_page)
-    COLLECTION_EDIT = ("📝 :blue[Edit a Collection]", collection_edit_page)
+    PRACTICE = ("🧠 :rainbow[Practice]", practice_page, False)
 
-    ROOT_PANEL = ("🔒 :red[Root panel]", root_page)
+    STUDY_COLLECTIONS = ("📚 :green[Study Collections]", study_collections_page, True)
+    COLLECTION_EDIT = ("📝 :blue[Edit a Collection]", collection_edit_page, True)
 
+    SPELLING_PROGRESS = ("📈 :violet[Spelling progress]", spelling_progress_page, True)
+
+    ROOT_PANEL = ("🔒 :red[Root panel]", root_page, True)
 
 
 
@@ -41,12 +46,11 @@ if __name__ == "__main__":
 
     with st.sidebar:
         for p in Pages:
-            button_text = p.value[0]
-            if st.session_state.current_page == p.value[0]:
-                button_text = f"⭐️ **{button_text}** ⭐️"
-            st.button(button_text, on_click=on_click, args=(p.value[0],), use_container_width=True)
-
-
+            if p.value[2]:
+                button_text = p.value[0]
+                if st.session_state.current_page == p.value[0]:
+                    button_text = f"⭐️ **{button_text}** ⭐️"
+                st.button(button_text, on_click=on_click, args=(p.value[0],), use_container_width=True)
 
 
     for p in Pages:

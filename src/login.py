@@ -3,6 +3,8 @@ import yaml
 import streamlit as st
 import streamlit_authenticator as stauth
 
+from src.database import get_db
+
 
 def login(username: str = None):
     """
@@ -58,6 +60,13 @@ def login(username: str = None):
             st.session_state.authenticator.logout(button_name=":red[👋🏻 Logout]")
 
         if username is None:
+            if "user_id_str" not in st.session_state:
+                db = get_db()
+                user_id = db["users"].find_one({"name": st.session_state.username})["_id"]
+                st.session_state.user_id_str = str(user_id)
+
+            st.sidebar.write(f"User ID: '{st.session_state.user_id_str}'")
+
             return True
         else:
             if st.session_state.username == username:

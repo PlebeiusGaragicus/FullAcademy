@@ -4,6 +4,10 @@ from src.database import get_db
 from src.login import login
 from src.schema import ProblemSet, ProblemType
 
+
+import sites
+
+
 def page():
     if not login():
         return
@@ -12,9 +16,9 @@ def page():
 
     db = get_db()
 
-    user_id = db["users"].find_one({"name": st.session_state.username})
-    user_id = str(user_id["_id"])
-    st.sidebar.write(f"User ID: '{user_id}'")
+    # user_id = db["users"].find_one({"name": st.session_state.username})['_id']
+    # user_id_str = str(user_id)
+    # st.sidebar.write(f"User ID: '{user_id_str}'")
 
 
 
@@ -22,7 +26,7 @@ def page():
     # st.write(f"ALL Problemsets: {problemsets}")
 
     # find all ProblemSets inside "problemset" collection that belong to the current user
-    problemsets = list(db["problemset"].find({"user_id": user_id}))
+    problemsets = list(db["problemset"].find({"user_id": st.session_state.user_id_str}))
     # st.write(f"MY Problemsets: {problemsets}")
 
 
@@ -33,14 +37,25 @@ def page():
             description = st.text_area("Description")
             type = st.selectbox("Type", [problem_type.value for problem_type in ProblemType], index=None, placeholder="Mixed")
             if st.form_submit_button("Create Collection"):
-                if title == "":
-                    st.error("Title must be filled")
+                # check if problemset with the same title already exists
+                existing_problemset = db["problemset"].find_one({"title": title})
+                if existing_problemset is not None:
+                    st.error("Collection with the same title already exists")
                 else:
-                    new_problemset = ProblemSet(user_id=user_id, title=title, description=description, type=type, problems=[])
-                    new = new_problemset.model_dump()
-                    db["problemset"].insert_one( new )
+                    if title == "":
+                        st.error("Title must be filled")
+                    else:
+                        # new_problemset = ProblemSet(user_id=user_id, title=title, description=description, type=type, problems=[])
+                        # new = new_problemset.model_dump()
+                        # db["problemset"].insert_one( new )
+                        db["problemset"].insert_one({
+                            "user_id": st.session_state.user_id_str,
+                            "title": title,
+                            "description": description,
+                            "type": type,
+                        })
 
-                    st.rerun()
+                        st.rerun()
 
 
     st.header(":green[Your Study Collections]", divider=True)
@@ -53,30 +68,56 @@ def page():
     # for each problemset, display its title, description, and problems
     for problemset in problemsets:
         with st.container(border=True):
-            st.markdown(f"## {problemset['title']}")
+            st.markdown(f"## :violet[{problemset['title']}]")
             # st.header(problemset['title'], divider=True)
-            st.write(problemset['description'])
-            st.write(f"Type: `{problemset['type']}`")
+            if problemset['description'] == "":
+                st.caption("No description")
+            else:
+                st.caption(f"Description: {problemset['description']}")
+            # st.write(problemset['description'])
+            if problemset['type'] is None:
+                st.write(f":green[Mixed problem types]")
+            else:
+                st.write(f"`{problemset['type']}`")
 
             with st.expander("Problems"):
-                for problem in problemset['problems']:
-                    with st.container(border=True):
-                        if problem['type'] == "short_answer":
-                            st.write(f"Question: {problem['question']}")
-                            st.write(f"Answer: {problem['answer']}")
-                            st.write(f"Prompt: {problem['prompt']}")
-                        elif problem['type'] == "spelling":
-                            st.write(f"Word: {problem['word']}")
-                            st.write(f"Example Usage: {problem['example_usage']}")
-                        elif problem['type'] == "math":
-                            st.write(f"Equation: {problem['equation']}")
-                            st.write(f"Answer: {problem['answer']}")
-                        elif problem['type'] == "definition":
-                            st.write(f"Word: {problem['word']}")
-                            st.write(f"Definition: {problem['definition']}")
+                # Fetch and display problems associated with the current problemset
+                problems = list(db["problem"].find({"problem_set_id": str(problemset["_id"])}))
+                if not problems:
+                    st.write("No problems in this collection yet.")
+                else:
+                    for problem in problems:
+                            if problem['problem_type'] == "short_answer":
+                                with st.container(border=True):
+                                    st.write(f"Question: {problem['question']}")
+                                    st.write(f"Answer: {problem['answer']}")
+                                    st.write(f"Prompt: {problem['prompt']}")
+                            elif problem['problem_type'] == "spelling":
+                                # st.write(f"Word: {problem['word']}")
+                                # st.write(f"Example Usage: {problem['example_usage']}")
+                                st.markdown(f"* {problem['word']}")
+                                # st.caption(f"{problem['example_usage']}")
+                            elif problem['problem_type'] == "math":
+                                with st.container(border=True):
+                                    st.write(f"Equation: {problem['equation']}")
+                                    st.write(f"Answer: {problem['answer']}")
+                            elif problem['problem_type'] == "definition":
+                                with st.container(border=True):
+                                    st.write(f"Word: {problem['word']}")
+                                    st.write(f"Definition: {problem['definition']}")
 
-            with st.popover(":red[Delete Collection]"):#, key=problemset["_id"]):
-                st.error("Warning: This action is irreversible!")
-                if st.button(f":red[Delete] {problemset['title']}", key=problemset["_id"]):
-                    db["problemset"].delete_one({"_id": problemset["_id"]})
+            cols2 = st.columns((1, 2, 1))
+            with cols2[0]:
+                if st.button(":blue[Study this!]", key=f"study_{problemset['_id']}"):
+                    st.session_state.current_page = sites.PRACTICE # turn into function for better readability
+                    st.session_state.practice_set = problemset
+                    # del st.session_state.chosen_word # TODO - this is to cumbersome
+                    st.session_state.chosen_word = None
                     st.rerun()
+ 
+            with cols2[2]:
+                with st.popover(":red[Delete Collection]"):#, key=problemset["_id"]):
+                    st.error("Warning: This action is irreversible!")
+                    if st.button(f":red[Delete] {problemset['title']}", key=f"delete_{problemset['_id']}"):
+                        db["problemset"].delete_one({"_id": problemset["_id"]})
+                        st.rerun()
