@@ -6,6 +6,8 @@ import subprocess
 
 import streamlit as st
 
+from src.login import login
+
 def choose_word():
     st.session_state.chosen_word_index = random.randint(0, len(st.session_state['words']['list']) - 1)
     st.session_state.failed_attempts = 0
@@ -25,7 +27,7 @@ def change_score(correct: bool):
     save_state()
 
 def save_state():
-    with open('words.json', 'w') as f:
+    with open(f'./words/{st.session_state.username}_words.json', 'w') as f:
         json.dump(st.session_state.words, f)
 
 
@@ -35,14 +37,17 @@ def save_state():
 
 ###############################################
 def page():
-    st.header('Spelling practice', divider="rainbow")
+    if not login():
+        return
+
+    st.header('📝 :rainbow[Spelling practice]', divider="rainbow")
 
 
     ### INIT
-    if not 'practice' in st.session_state:
-        st.session_state.practice = True
+    if not 'spelling' in st.session_state:
+        st.session_state.spelling = True
 
-        with open('words.json') as f:
+        with open(f'./words/{st.session_state.username}_words.json', 'r') as f:
             st.session_state.words = json.load(f)
         
         choose_word()

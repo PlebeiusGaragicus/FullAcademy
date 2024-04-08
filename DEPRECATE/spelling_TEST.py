@@ -6,6 +6,8 @@ import subprocess
 
 import streamlit as st
 
+from src.login import login
+
 def choose_word():
     st.session_state.chosen_word_index = random.randint(0, len(st.session_state['words']['list']) - 1)
     st.session_state.failed_attempts = 0
@@ -20,6 +22,9 @@ def chosen_word():
 
 ###############################################
 def page():
+    if not login():
+        return
+
     st.header('Spelling TEST', divider="rainbow")
 
 
@@ -27,7 +32,7 @@ def page():
     if not 'test' in st.session_state:
         st.session_state.test = True
 
-        with open('words.json') as f:
+        with open(f'./words/{st.session_state.username}_words.json') as f:
             st.session_state.words = json.load(f)
 
         choose_word()

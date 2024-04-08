@@ -1,4 +1,8 @@
+pydantic
+
 streamlit
 streamlit_authenticator
-pyttsx3
+
+# pyttsx3
 gtts
+pymongo

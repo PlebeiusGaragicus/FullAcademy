@@ -2,28 +2,38 @@ import streamlit as st
 
 from enum import Enum
 
-from sites.home_page import page as home_page
-from sites.spell_practice import page as spell_practice_page
+from sites.landing_page import page as landing_page
+from sites.spelling_practice import page as spell_practice_page
 from sites.spelling_progress import page as spelling_progress_page
-from sites.spelling_TEST import page as spelling_test_page
+
+from sites.study_collections import page as study_collections_page
+from sites.collection_edit import page as collection_edit_page
+
+from sites.spelling_settings import page as spelling_settings_page
+from sites.root import page as root_page
 
 
 
 class Pages(Enum):
-    HOME = ("Home", home_page)
+    HOME = ("Home", landing_page)
 
-    ### BTC
+
     SPELLING_PRACTICE = (":orange[Spelling practice]", spell_practice_page)
-    SPELLING_TEST = (":green[Spelling test]", spelling_test_page)
-    HISTORICAL_PRICE = (":blue[Historical Bitcoin Price]", btc_historical_price_page)
-    MINING_CALCS = (":red[Bitcoin Mining Calcs]", btc_mining_calcs_page)
+    SPELLING_PROGRESS = (":purple[Spelling progress]", spelling_progress_page)
+    # SPELLING_TEST = (":green[Spelling test]", spelling_test_page)
+    SPELLING_SETTINGS = ("👨🏻‍🏫 :blue[Spelling settings]", spelling_settings_page)
+
+    STUDY_COLLECTIONS = ("📚 :purple[Study collections]", study_collections_page)
+    COLLECTION_EDIT = ("📝 :blue[Collection edit]", collection_edit_page)
+
+    ROOT_PANEL = ("🔒 :red[Root panel]", root_page)
 
 
 
 
 if __name__ == "__main__":
     if "current_page" not in st.session_state:
-        st.session_state.current_page = Pages.HOME.value
+        st.session_state.current_page = Pages.HOME.value[0]
 
 
     def on_click(page):
@@ -43,3 +53,7 @@ if __name__ == "__main__":
         if st.session_state.current_page == p.value[0]:
             p.value[1]()
             break
+
+    with st.sidebar:
+        with st.popover("🔧"):
+            st.write(st.session_state)
