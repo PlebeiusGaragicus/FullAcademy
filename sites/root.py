@@ -4,7 +4,8 @@ from src.database import get_db
 from src.login import login
 
 def page():
-    if not login("root"):
+    # if not login("root"):
+    if not login(need_root=True):
         return
 
     st.header(f":red[ROOT PANEL]")
@@ -14,15 +15,23 @@ def page():
     st.markdown("## Collections")
     st.write(db.list_collection_names())
 
-    # get users collection
     users = db["users"]
-
     all_users = list(users.find())
 
-    st.markdown("## Users")
-    st.write(all_users)
-
-    # for each user, create a delete button
+    st.header("Users", divider=True)
     for user in all_users:
-        if st.button(f"Delete {user['name']}"):
-            users.delete_one({"name": user["name"]})
+        with st.container(border=True):
+            cols2 = st.columns(3)
+            with cols2[0]:
+                st.write(f":orange[{user['name']}]")
+
+            with cols2[1]:
+                with st.popover("info"):
+                    st.write(user)
+
+            with cols2[2]:
+                with st.popover(":red[Delete User]"):
+                    st.warning("Are you sure?")
+                    if st.button(f"Delete {user['name']}"):
+                        users.delete_one({"name": user["name"]})
+                        st.rerun()

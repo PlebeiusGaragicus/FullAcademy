@@ -16,11 +16,6 @@ def page():
 
     db = get_db()
 
-    # user_id = db["users"].find_one({"name": st.session_state.username})['_id']
-    # user_id_str = str(user_id)
-    # st.sidebar.write(f"User ID: '{user_id_str}'")
-
-
 
     # problemsets = list(db["problemset"].find())
     # st.write(f"ALL Problemsets: {problemsets}")
@@ -106,18 +101,19 @@ def page():
                                     st.write(f"Word: {problem['word']}")
                                     st.write(f"Definition: {problem['definition']}")
 
-            cols2 = st.columns((1, 2, 1))
+            cols2 = st.columns((2, 2, 1))
             with cols2[0]:
-                if st.button(":blue[Study this!]", key=f"study_{problemset['_id']}"):
+                if st.button(":blue[Study this!]", key=f"study_{problemset['_id']}", use_container_width=True):
                     st.session_state.current_page = sites.PRACTICE # turn into function for better readability
                     st.session_state.practice_set = problemset
                     # del st.session_state.chosen_word # TODO - this is to cumbersome
                     st.session_state.chosen_word = None
                     st.rerun()
  
-            with cols2[2]:
-                with st.popover(":red[Delete Collection]"):#, key=problemset["_id"]):
-                    st.error("Warning: This action is irreversible!")
-                    if st.button(f":red[Delete] {problemset['title']}", key=f"delete_{problemset['_id']}"):
-                        db["problemset"].delete_one({"_id": problemset["_id"]})
-                        st.rerun()
+            if st.session_state.username == "root":
+                with cols2[2]:
+                    with st.popover(":red[Delete Collection]"):#, key=problemset["_id"]):
+                        st.error("Warning: This action is irreversible!")
+                        if st.button(f":red[Delete] {problemset['title']}", key=f"delete_{problemset['_id']}"):
+                            db["problemset"].delete_one({"_id": problemset["_id"]})
+                            st.rerun()

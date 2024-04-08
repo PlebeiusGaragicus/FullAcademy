@@ -142,7 +142,10 @@ def page():
                 # st.write(f"Problem Type: {problem['problem_type']}")
                 # st.write(problem)
 
-                cols2 = st.columns((2, 1, 1))
+                if st.session_state.username == "root":
+                    cols2 = st.columns((2, 1, 1, 1))
+                else:
+                    cols2 = st.columns((2, 1))
                 with cols2[0]:
                     if problem['problem_type'] == "short_answer":
                         st.write(f"Question: {problem['question']}")
@@ -169,15 +172,24 @@ def page():
 
                     accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
                     color = "green" if accuracy > 0.8 else "red"
-                    st.write(f"Accuracy: :{color}[{accuracy * 100:.0f}%]")
+                    # st.write(f"Accuracy: :{color}[{accuracy * 100:.0f}%]")
+                    st.button(f"Accuracy: :{color}[{accuracy * 100:.0f}%]", key=f"accuracy_{problem['_id']}", use_container_width=True, disabled=True)
 
-                with cols2[2]:
-                    with st.popover(":red[Delete]"):
-                        st.error("Are you sure you want to delete this problem?")
-                        if st.button(f":red[Delete]", key=problem["_id"]):
-                            db["problem"].delete_one({"_id": problem["_id"]})
-                            st.success("Problem deleted successfully!")
-                            st.rerun()
+                if st.session_state.username == "root":
+                    with cols2[2]:
+                        with st.popover(":green[Reset stats]", use_container_width=True):
+                            if st.button("Reset", key=f"reset_{problem['_id']}", use_container_width=True):
+                                db["attempts"].delete_many({"problem_id": str(problem["_id"])})
+                                # st.success("Stats reset successfully!")
+                                st.rerun()
+
+                    with cols2[3]:
+                        with st.popover(":red[Delete]", use_container_width=True):
+                            st.error("Are you sure you want to delete this problem?")
+                            if st.button(f":red[Delete]", key=f"delete_{problem['_id']}", use_container_width=True):
+                                db["problem"].delete_one({"_id": problem["_id"]})
+                                st.success("Problem deleted successfully!")
+                                st.rerun()
 
 
 

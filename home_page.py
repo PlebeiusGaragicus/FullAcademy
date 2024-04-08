@@ -4,8 +4,8 @@ from enum import Enum
 
 
 from sites.landing_page import page as landing_page
-from sites.spelling_practice import page as spell_practice_page
-from sites.spelling_progress import page as spelling_progress_page
+# from sites.spelling_practice import page as spell_practice_page
+from sites.progress_report import page as progress_report_page
 
 from sites.practice import page as practice_page
 
@@ -30,7 +30,7 @@ class Pages(Enum):
     STUDY_COLLECTIONS = ("📚 :green[Study Collections]", study_collections_page, True)
     COLLECTION_EDIT = ("📝 :blue[Edit a Collection]", collection_edit_page, True)
 
-    SPELLING_PROGRESS = ("📈 :violet[Spelling progress]", spelling_progress_page, True)
+    PROGRESS_REPORT = ("📈 :violet[Progress Report]", progress_report_page, True)
 
     ROOT_PANEL = ("🔒 :red[Root panel]", root_page, True)
 
