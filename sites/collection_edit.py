@@ -20,55 +20,108 @@ def page():
     # find all ProblemSets inside "problemset" collection that belong to the current user
     problemsets = list(db["problemset"].find({"user_id": user_id}))
 
+    if problemsets == []:
+        st.warning("You have no study collections yet!")
+        return
+
     set_titles = [problemset['title'] for problemset in problemsets]
 
     selected_problemset = st.selectbox("Select a problemset", set_titles)
-
     selected_problemset = db["problemset"].find_one({"title": selected_problemset})
 
-    st.write(f"Selected Problemset: {selected_problemset['title']}")
+    if selected_problemset['type'] is None:
+        new_problem_type = st.selectbox("Problem Type", [problem_type.value for problem_type in ProblemType])
+    else:
+        new_problem_type = selected_problemset['type']
+        st.markdown("Problem Type: " + new_problem_type)
 
-    with st.form(key="add_problem"):
-        st.write("Add a new problem to the selected problemset")
-        problem_type = st.selectbox("Problem Type", [problem_type.value for problem_type in ProblemType])
-        if problem_type == ProblemType.SHORT_ANSWER.value:
+
+    with st.form(key="add_problem", clear_on_submit=True):
+        # st.write("Add a new problem to the selected problemset")
+        if new_problem_type == ProblemType.SHORT_ANSWER.value:
             question = st.text_input("Question")
             answer = st.text_input("Answer")
             prompt = st.text_input("Prompt")
             if st.form_submit_button("Add Problem"):
-                db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": problem_type, "question": question, "answer": answer, "prompt": prompt}}})
-        elif problem_type == ProblemType.SPELLING.value:
+                if question == "" or answer == "" or prompt == "":
+                    st.error("All fields must be filled")
+                else:
+                    existing_problem = db["problemset"].find_one({"title": selected_problemset['title'], "problems.question": question})
+                    if existing_problem is None:
+                        db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": new_problem_type, "question": question, "answer": answer, "prompt": prompt}}})
+                        st.rerun()
+                    else:
+                        st.error("Problem already exists in the selected problemset")
+
+        elif new_problem_type == ProblemType.SPELLING.value:
             word = st.text_input("Word")
             example_usage = st.text_input("Example Usage")
             if st.form_submit_button("Add Problem"):
-                db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": problem_type, "word": word, "example_usage": example_usage}}})
-        elif problem_type == ProblemType.MATH.value:
+                if word == "" or example_usage == "":
+                    st.error("All fields must be filled")
+                else:
+                    existing_problem = db["problemset"].find_one({"title": selected_problemset['title'], "problems.word": word})
+                    if existing_problem is None:
+                        db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": new_problem_type, "word": word, "example_usage": example_usage}}})
+                        st.rerun()
+                    else:
+                        st.error("Problem already exists in the selected problemset")
+
+
+        elif new_problem_type == ProblemType.MATH.value:
             equation = st.text_input("Equation")
             answer = st.text_input("Answer")
             if st.form_submit_button("Add Problem"):
-                db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": problem_type, "equation": equation, "answer": answer}}})
-        elif problem_type == ProblemType.DEFINITION.value:
+                if equation == "" or answer == "":
+                    st.error("All fields must be filled")
+                else:
+                    existing_problem = db["problemset"].find_one({"title": selected_problemset['title'], "problems.equation": equation})
+                    if existing_problem is None:
+                        db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": new_problem_type, "equation": equation, "answer": answer}}})
+                        st.rerun()
+                    else:
+                        st.error("Problem already exists in the selected problemset")
+
+        elif new_problem_type == ProblemType.DEFINITION.value:
             word = st.text_input("Word")
             definition = st.text_input("Definition")
             if st.form_submit_button("Add Problem"):
-                db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": problem_type, "word": word, "definition": definition}}})
+                if word == "" or definition == "":
+                    st.error("All fields must be filled")
+                else:
+                    existing_problem = db["problemset"].find_one({"title": selected_problemset['title'], "problems.word": word})
+                    if existing_problem is None:
+                        db["problemset"].update_one({"title": selected_problemset['title']}, {"$push": {"problems": {"type": new_problem_type, "word": word, "definition": definition}}})
+                        st.rerun()
+                    else:
+                        st.error("Problem already exists in the selected problemset")
 
     # list all problems in the selected problemset
-    with st.expander("Problems"):
-        for problem in selected_problemset['problems']:
-            if problem['type'] == "short_answer":
-                st.write(f"Question: {problem['question']}")
-                st.write(f"Answer: {problem['answer']}")
-                st.write(f"Prompt: {problem['prompt']}")
-            elif problem['type'] == "spelling":
-                st.write(f"Word: {problem['word']}")
-                st.write(f"Example Usage: {problem['example_usage']}")
-            elif problem['type'] == "math":
-                st.write(f"Equation: {problem['equation']}")
-                st.write(f"Answer: {problem['answer']}")
-            elif problem['type'] == "definition":
-                st.write(f"Word: {problem['word']}")
-                st.write(f"Definition: {problem['definition']}")
+    # with st.expander("Problems"):
+    for problem in selected_problemset['problems']:
+        with st.container(border=True):
+            cols2 = st.columns((3, 1))
+            with cols2[0]:
+                if problem['type'] == "short_answer":
+                    st.write(f"Question: {problem['question']}")
+                    st.write(f"Answer: {problem['answer']}")
+                    st.write(f"Prompt: {problem['prompt']}")
+                elif problem['type'] == "spelling":
+                    st.write(f"Word: {problem['word']}")
+                    st.write(f"Example Usage: {problem['example_usage']}")
+                elif problem['type'] == "math":
+                    st.write(f"Equation: {problem['equation']}")
+                    st.write(f"Answer: {problem['answer']}")
+                elif problem['type'] == "definition":
+                    st.write(f"Word: {problem['word']}")
+                    st.write(f"Definition: {problem['definition']}")
+
+            with cols2[1]:
+                with st.popover(":red[Delete]"):
+                    st.error("Are you sure you want to delete this problem?")
+                    if st.button(f":red[Delete]", key=problem):
+                        db["problemset"].update_one({"title": selected_problemset['title']}, {"$pull": {"problems": problem}})
+                        st.rerun()
 
 
     # # for each problemset, display its title, description, and problems

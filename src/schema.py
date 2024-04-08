@@ -41,6 +41,7 @@ class DefinitionProblem(BaseModel):
 
 
 class ProblemType(Enum):
+    # ANY = "any"
     SPELLING = "spelling"
     MATH = "math"
     SHORT_ANSWER = "short_answer"

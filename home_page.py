@@ -9,7 +9,7 @@ from sites.spelling_progress import page as spelling_progress_page
 from sites.study_collections import page as study_collections_page
 from sites.collection_edit import page as collection_edit_page
 
-from sites.spelling_settings import page as spelling_settings_page
+# from sites.spelling_settings import page as spelling_settings_page
 from sites.root import page as root_page
 
 
@@ -21,9 +21,9 @@ class Pages(Enum):
     SPELLING_PRACTICE = (":orange[Spelling practice]", spell_practice_page)
     SPELLING_PROGRESS = (":purple[Spelling progress]", spelling_progress_page)
     # SPELLING_TEST = (":green[Spelling test]", spelling_test_page)
-    SPELLING_SETTINGS = ("👨🏻‍🏫 :blue[Spelling settings]", spelling_settings_page)
+    # SPELLING_SETTINGS = ("👨🏻‍🏫 :blue[Spelling settings]", spelling_settings_page)
 
-    STUDY_COLLECTIONS = ("📚 :purple[Study collections]", study_collections_page)
+    STUDY_COLLECTIONS = ("📚 :purple[Collections]", study_collections_page)
     COLLECTION_EDIT = ("📝 :blue[Collection edit]", collection_edit_page)
 
     ROOT_PANEL = ("🔒 :red[Root panel]", root_page)
