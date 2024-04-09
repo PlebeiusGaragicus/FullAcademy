@@ -50,3 +50,4 @@ def page():
                 st.success(f"Accuracy: {ratio * 100:.0f}%")
             else:
                 st.error(f"Accuracy: {ratio * 100:.0f}%")
+

@@ -74,8 +74,8 @@ def page():
             word = st.text_input("Word")
             example_usage = st.text_input("Example Usage")
             if st.form_submit_button("Add word"):
-                if word == "" or example_usage == "":
-                    st.error("All fields must be filled")
+                if word == "":
+                    st.error("Must enter a word")
                 else:
                     existing_problem = db["problemset"].find_one({"problem_set_id": str(selected_problemset["_id"]), "word": word})
                     if existing_problem is None:
@@ -124,6 +124,28 @@ def page():
                         })
                         st.success("Problem added successfully!")
                         st.rerun()
+        
+        elif new_problem_type == ProblemType.MULTIPLE_CHOICE.value:
+            question = st.text_input("Question")
+            choices = st.text_area("Choices", value="Choice 1\nChoice 2\nChoice 3\nChoice 4")
+            answer = st.selectbox("Answer", [f"Choice {i+1}" for i in range(4)])
+            if st.form_submit_button("Add Problem"):
+                if question == "" or choices == "" or answer == "":
+                    st.error("All fields must be filled")
+                else:
+                    existing_problem = db["problemset"].find_one({"problem_set_id": str(selected_problemset["_id"]), "question": question})
+                    if existing_problem is None:
+                        db["problem"].insert_one({
+                            "problem_set_id": str(selected_problemset["_id"]),
+                            "problem_type": new_problem_type,
+                            "question": question,
+                            "choices": choices.split("\n"),
+                            "answer": int(answer.split(" ")[1]) - 1
+                        })
+                        # st.success("Problem added successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Problem already exists in the selected problemset")
 
 
 
@@ -145,7 +167,7 @@ def page():
                 if st.session_state.username == "root":
                     cols2 = st.columns((2, 1, 1, 1))
                 else:
-                    cols2 = st.columns((2, 1))
+                    cols2 = st.columns((3, 1))
                 with cols2[0]:
                     if problem['problem_type'] == "short_answer":
                         st.write(f"Question: {problem['question']}")
@@ -153,8 +175,6 @@ def page():
                         st.write(f"Prompt: {problem['prompt']}")
 
                     elif problem['problem_type'] == "spelling":
-                        # st.write(f"Word: {problem['word']}")
-                        # st.write(f"Example Usage: {problem['example_usage']}")
                         st.write(f"**{problem['word']}**")
                         st.caption(f"{problem['example_usage']}")
 
@@ -165,15 +185,31 @@ def page():
                     elif problem['problem_type'] == "definition":
                         st.write(f"Word: {problem['word']}")
                         st.write(f"Definition: {problem['definition']}")
+                    
+                    elif problem['problem_type'] == "multiple_choice":
+                        st.write(f"Question: {problem['question']}")
+                        for i, c in enumerate(problem['choices']):
+                            if i == problem['answer']:
+                                st.write(f"- :green[{c}]")
+                            else:
+                                st.markdown(f"- :red[{c}]")
 
                 with cols2[1]:
                     attempts = list(db["attempts"].find({"user_id": st.session_state.user_id_str, "problem_id": str(problem['_id'])}))
                     # st.write(attempts)
 
-                    accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
+                    # accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
+                    num_correct = sum([attempt['was_correct'] for attempt in attempts])
+                    num_attempts = len(attempts)
+                    accuracy = num_correct / num_attempts if num_attempts > 0 else 0
+
                     color = "green" if accuracy > 0.8 else "red"
                     # st.write(f"Accuracy: :{color}[{accuracy * 100:.0f}%]")
-                    st.button(f"Accuracy: :{color}[{accuracy * 100:.0f}%]", key=f"accuracy_{problem['_id']}", use_container_width=True, disabled=True)
+                    # st.button(f"🎯 :{color}[{accuracy * 100:.0f}%]", key=f"accuracy_{problem['_id']}", use_container_width=True, disabled=True)
+                    # st.button(f"🎯 :{color}[{accuracy * 100:.0f}%]", key=f"accuracy_{problem['_id']}", use_container_width=True)
+                    with st.container(border=True):
+                        st.write(f"🎯 :blue[{num_correct}/{num_correct}] :violet[|]  :{color}[{accuracy * 100:.0f}%]")
+                        # st.write(f"% {num_correct}/{num_correct}")
 
                 if st.session_state.username == "root":
                     with cols2[2]:

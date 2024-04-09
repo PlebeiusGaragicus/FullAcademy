@@ -18,30 +18,36 @@ class UserAttempt(BaseModel):
 
 
 class Problem(BaseModel):
-    problem_set_id: str = Field(...),
+    problem_set_id: str = Field(...)
     problem_type: str = Field(...)
 
 
-
 class ShortAnswerProblem(Problem):
-    question: str
-    answer: str
-    prompt: str
+    question: str = Field(...)
+    answer: str = Field(...)
+    prompt: str = Field(...)
 
 
 class SpellingProblem(Problem):
-    word: str
+    word: str = Field(...)
     example_usage: str
 
 
 class MathProblem(Problem):
-    equation: str
-    answer: str
+    equation: str = Field(...)
+    answer: str = Field(...)
 
 
 class DefinitionProblem(Problem):
-    word: str
-    definition: str
+    word: str = Field(...)
+    definition: str = Field(...)
+    prompt: str = Field(...)
+
+
+class MultipleChoiceProblem(Problem):
+    question: str = Field(...)
+    choices: List[str] = Field(...)
+    answer: int = Field(...) # index of the correct answer
 
 
 class ProblemType(Enum):
@@ -50,6 +56,7 @@ class ProblemType(Enum):
     MATH = "math"
     SHORT_ANSWER = "short_answer"
     DEFINITION = "definition"
+    MULTIPLE_CHOICE = "multiple_choice"
 
 
 class ProblemSet(BaseModel):
@@ -59,4 +66,9 @@ class ProblemSet(BaseModel):
     type: Optional[str] = None  # Enum field set to optional
     # type: Optional[ProblemType] = None  # Enum field set to optional
 
-    # problems: List[Union[ShortAnswerProblem, SpellingProblem, MathProblem, DefinitionProblem]] = []
+
+class TestSet(BaseModel):
+    user_ids: List[str] = Field(...) # list of users who can access this test set
+    title: str = Field(...)
+    description: str = Field(...)
+    problem_ids: List[str] = Field(...)

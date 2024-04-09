@@ -9,27 +9,72 @@ import streamlit as st
 from src.login import login
 from src.database import get_db
 from src.schema import UserAttempt
+from src.speech import TTS
 
 
+
+def 
 
 
 
 def choose_word():
     st.session_state.failed_attempts = 0
     st.session_state.given_up = False
-    st.session_state.speak_word = True
-
-    db = get_db()
 
     # query for problems with this problem set id
+    db = get_db()
     problems = list(db["problem"].find({"problem_set_id": str(st.session_state.practice_set["_id"])}))
+    # random_word = random.choice(problems)
 
-    with st.expander("words"):
-        st.write(problems)
+    # find a word that hasn't been attempted yet
+    attempted_words = [attempt['problem_id'] for attempt in db["attempts"].find({"user_id": st.session_state.user_id_str})]
+    unattempted_words = [problem for problem in problems if problem['_id'] not in attempted_words]
+    if unattempted_words:
+        random_word = random.choice(unattempted_words)
+    else:
 
-    random_word = random.choice(problems)
+
+        if random.random() < 0.7: # 70% chance
+            # do the "hard" ones
+            # if accuracy is less than 40, show the word
+            problems_to_show = []
+            for problem in problems:
+                attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
+                accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
+                if accuracy < 0.4:
+                    problems_to_show.append(problem)
+            
+
+        elif random.random() < 0.3:  # 10% chance
+            # do the "easy" ones
+            # if accuracy is less than 80 and above 40, show the word
+            problems_to_show = []
+            for problem in problems:
+                attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
+                accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
+                if accuracy >= 0.8:
+                    problems_to_show.append(problem)
+
+        else: # 20% chance
+            # do the "medium" ones
+            # if accuracy 80% or better, show this word
+            problems_to_show = []
+            for problem in problems:
+                attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
+                accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
+                if 0.4 <= accuracy < 0.8:
+                    problems_to_show.append(problem)
+
+        random_word = random.choice(problems_to_show)
+
+
+
     st.session_state.chosen_word_id = str(random_word['_id'])
     st.session_state.chosen_word = random_word['word']
+    if random_word['example_usage']:
+        st.session_state.speak_this = f"Spell: '{random_word['word']}'.\n\n As in: {random_word['example_usage']}"
+    else:
+        st.session_state.speak_this = f"Spell: '{random_word['word']}'."
 
 
 def chosen_word():
@@ -50,7 +95,7 @@ def select_a_set():
         # find problem sets of type "spelling"
         spelling_sets = [problemset['title'] for problemset in problemsets if problemset['type'] == "spelling"]
 
-        selected_set = practice_set = st.selectbox("Spelling sets", spelling_sets, index=None)
+        selected_set = st.selectbox("Spelling sets", spelling_sets, index=None)
 
         if selected_set:
             # find the selected set
@@ -64,7 +109,7 @@ def select_a_set():
 def show_attempts():
     db = get_db()
     attempts = list(db["attempts"].find({"user_id": st.session_state.user_id_str, "problem_id": st.session_state.chosen_word_id}))
-    st.write(attempts)
+    # st.write(attempts)
 
     accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
     color = "green" if accuracy > 0.8 else "red"
@@ -72,6 +117,9 @@ def show_attempts():
 
 
 def change_score(correct):
+    if st.session_state.given_up:
+        return
+
     db = get_db()
     attempt = UserAttempt(user_id=st.session_state.user_id_str,
                             problem_id=st.session_state.chosen_word_id,
@@ -93,15 +141,21 @@ def page():
     # if not "practice_set" in st.session_state:
     #     select_a_set()
 
-    st.write(st.session_state.practice_set)
+    # st.write(st.session_state.practice_set)
 
     if not st.session_state.chosen_word:
         choose_word()
         st.toast("Ready to learn!")
 
-    st.markdown(f"# word: {st.session_state.chosen_word}")
+    # st.markdown(f"# word: {st.session_state.chosen_word}")
+
+    # TTS(st.session_state.speak_this, slow=False)
+    # subprocess.run(['say', f"Spell: `{chosen_word()}`.\n\n", f"As in: '{example}'", '-v', 'Alex'])
+    tts_placeholder = st.empty()
 
     show_attempts()
+
+    # st.write(st.session_state.failed_attempts)
 
     ### GUESS SUBMISSION FORM
     with st.form(key='spell_test_form', clear_on_submit=True):
@@ -122,28 +176,30 @@ def page():
 
                 # STUDENT GOT IT WRONG
             else:
-                # create a UserAttempt in the 'attempts' collection
-                # db = get_db()
-                # attempt = UserAttempt(user_id=st.session_state.user_id_str,
-                #                       problem_id=st.session_state.chosen_word_id,
-                #                       was_correct=False)
+                st.session_state.failed_attempts += 1
 
-                # db['attempts'].insert_one(attempt.model_dump())
-
-                st.session_state.speak_word = True
                 change_score(False)
                 if st.session_state.failed_attempts == 0:
                     st.error('Incorrect! Try again.')
                     st.rerun()
-                # elif st.session_state.failed_attempts == 1:
-                    # st.error('Try one more time!')
+                elif st.session_state.failed_attempts == 1:
+                    st.error('Try one more time!')
                 else:
                     st.markdown(f"# Sorry, the word was `{chosen_word()}`")
                     # choose_word()
                     # st.rerun()
 
-                st.session_state.failed_attempts += 1
+    cols = st.columns([3, 1, 1, 1])
+    give_up = st.empty()
+    with cols[-1]:
+        if st.button("😿 :grey[give up]"):    
+            give_up.markdown(f"# :blue[{chosen_word()}]")
+            st.session_state.given_up = True
 
+
+    if st.session_state.failed_attempts < 2 and not st.session_state.given_up:
+        with tts_placeholder:
+            TTS(st.session_state.speak_this, slow=False)
 
 
 

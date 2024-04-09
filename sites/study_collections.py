@@ -87,19 +87,26 @@ def page():
                                     st.write(f"Question: {problem['question']}")
                                     st.write(f"Answer: {problem['answer']}")
                                     st.write(f"Prompt: {problem['prompt']}")
+
                             elif problem['problem_type'] == "spelling":
-                                # st.write(f"Word: {problem['word']}")
-                                # st.write(f"Example Usage: {problem['example_usage']}")
                                 st.markdown(f"* {problem['word']}")
-                                # st.caption(f"{problem['example_usage']}")
+
                             elif problem['problem_type'] == "math":
                                 with st.container(border=True):
                                     st.write(f"Equation: {problem['equation']}")
                                     st.write(f"Answer: {problem['answer']}")
+
                             elif problem['problem_type'] == "definition":
                                 with st.container(border=True):
                                     st.write(f"Word: {problem['word']}")
                                     st.write(f"Definition: {problem['definition']}")
+                            
+                            elif problem['problem_type'] == "multiple_choice":
+                                with st.container(border=True):
+                                    st.write(f"Question: {problem['question']}")
+                                    for c in problem['choices']:
+                                        st.write(f"- {c}")
+                                    st.write(f"Answer: {problem['answer']}")
 
             cols2 = st.columns((2, 2, 1))
             with cols2[0]:
