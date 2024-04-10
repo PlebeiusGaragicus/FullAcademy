@@ -13,10 +13,6 @@ from src.speech import TTS
 
 
 
-def 
-
-
-
 def choose_word():
     st.session_state.failed_attempts = 0
     st.session_state.given_up = False
@@ -27,54 +23,54 @@ def choose_word():
     # random_word = random.choice(problems)
 
     # find a word that hasn't been attempted yet
-    attempted_words = [attempt['problem_id'] for attempt in db["attempts"].find({"user_id": st.session_state.user_id_str})]
-    unattempted_words = [problem for problem in problems if problem['_id'] not in attempted_words]
-    if unattempted_words:
-        random_word = random.choice(unattempted_words)
+    # attempted_words = [attempt['problem_id'] for attempt in db["attempts"].find({"user_id": st.session_state.user_id_str})]
+    # st.write(attempted_words)
+
+    # unattempted_words = [problem for problem in problems if problem['_id'] not in attempted_words]
+    # st.write(unattempted_words)
+    # if unattempted_words != []:
+    #     random_word = random.choice(unattempted_words)
+
+    # else:
+
+    # Assuming 'problems' is a list of problem documents from a database
+    # and db["attempts"] is a collection where attempts are stored.
+
+    problems_with_accuracy = []
+    for problem in problems:
+        attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
+        accuracy = sum(attempt['was_correct'] for attempt in attempts) / len(attempts) if attempts else 0
+        problems_with_accuracy.append((problem, accuracy))
+
+    # Decide on the category only once per execution
+    rand_choice = random.random()
+
+    # Categorize problems
+    if rand_choice < 0.7:  # 70% chance for hard problems
+        problems_to_show = [problem for problem, accuracy in problems_with_accuracy if accuracy < 0.6]
+    elif rand_choice < 0.8:  # 10% chance for easy problems, cumulative probability 0.7 + 0.1 = 0.8
+        problems_to_show = [problem for problem, accuracy in problems_with_accuracy if accuracy >= 0.9]
+    else:  # 20% chance for medium problems, rest of the probability space
+        problems_to_show = [problem for problem, accuracy in problems_with_accuracy if 0.6 <= accuracy < 0.9]
+
+    # Fallback to all problems if no problems fit the criteria
+    if not problems_to_show:
+        problems_to_show = [problem for problem, _ in problems_with_accuracy]
+
+    st.write(problems_to_show)
+
+    # Select a random problem to show
+    random_problem = random.choice(problems_to_show)
+
+
+
+
+    st.session_state.chosen_word_id = str(random_problem['_id'])
+    st.session_state.chosen_word = random_problem['word']
+    if random_problem['example_usage']:
+        st.session_state.speak_this = f"Spell: '{random_problem['word']}'.\n\n As in: {random_problem['example_usage']}"
     else:
-
-
-        if random.random() < 0.7: # 70% chance
-            # do the "hard" ones
-            # if accuracy is less than 40, show the word
-            problems_to_show = []
-            for problem in problems:
-                attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
-                accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
-                if accuracy < 0.4:
-                    problems_to_show.append(problem)
-            
-
-        elif random.random() < 0.3:  # 10% chance
-            # do the "easy" ones
-            # if accuracy is less than 80 and above 40, show the word
-            problems_to_show = []
-            for problem in problems:
-                attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
-                accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
-                if accuracy >= 0.8:
-                    problems_to_show.append(problem)
-
-        else: # 20% chance
-            # do the "medium" ones
-            # if accuracy 80% or better, show this word
-            problems_to_show = []
-            for problem in problems:
-                attempts = list(db["attempts"].find({"problem_id": problem['_id']}))
-                accuracy = sum([attempt['was_correct'] for attempt in attempts]) / len(attempts) if len(attempts) > 0 else 0
-                if 0.4 <= accuracy < 0.8:
-                    problems_to_show.append(problem)
-
-        random_word = random.choice(problems_to_show)
-
-
-
-    st.session_state.chosen_word_id = str(random_word['_id'])
-    st.session_state.chosen_word = random_word['word']
-    if random_word['example_usage']:
-        st.session_state.speak_this = f"Spell: '{random_word['word']}'.\n\n As in: {random_word['example_usage']}"
-    else:
-        st.session_state.speak_this = f"Spell: '{random_word['word']}'."
+        st.session_state.speak_this = f"Spell: '{random_problem['word']}'."
 
 
 def chosen_word():

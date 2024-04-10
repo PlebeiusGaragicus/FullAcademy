@@ -165,7 +165,7 @@ def page():
                 # st.write(problem)
 
                 if st.session_state.username == "root":
-                    cols2 = st.columns((2, 1, 1, 1))
+                    cols2 = st.columns((1, 1, 1, 1))
                 else:
                     cols2 = st.columns((3, 1))
                 with cols2[0]:
@@ -208,7 +208,7 @@ def page():
                     # st.button(f"🎯 :{color}[{accuracy * 100:.0f}%]", key=f"accuracy_{problem['_id']}", use_container_width=True, disabled=True)
                     # st.button(f"🎯 :{color}[{accuracy * 100:.0f}%]", key=f"accuracy_{problem['_id']}", use_container_width=True)
                     with st.container(border=True):
-                        st.write(f"🎯 :blue[{num_correct}/{num_correct}] :violet[|]  :{color}[{accuracy * 100:.0f}%]")
+                        st.write(f"🎯 :blue[{num_correct}/{num_attempts}] :violet[|]  :{color}[{accuracy * 100:.0f}%]")
                         # st.write(f"% {num_correct}/{num_correct}")
 
                 if st.session_state.username == "root":
