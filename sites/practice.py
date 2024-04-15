@@ -57,7 +57,8 @@ def choose_word():
     if not problems_to_show:
         problems_to_show = [problem for problem, _ in problems_with_accuracy]
 
-    st.write(problems_to_show)
+    if os.getenv("DEBUG"):
+        st.write(problems_to_show)
 
     # Select a random problem to show
     random_problem = random.choice(problems_to_show)

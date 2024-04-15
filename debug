@@ -2,5 +2,6 @@
 
 source venv/bin/activate
 
+DEBUG=true
 args="--server.runOnSave true --logger.level info --server.headless true"
 streamlit run $args home_page.py
